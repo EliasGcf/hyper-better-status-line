@@ -169,10 +169,14 @@ const setCwd = (pid, action) => {
             }
         }
     } else {
-        exec(`lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`, (err, stdout) => {
+        exec(
+          `lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`,
+          { env: { ...process.env, LANG: 'pt_BR.UTF-8' } },
+          (err, stdout) => {
             cwd = stdout.trim();
             setGit(cwd);
-        });
+          },
+        );
     }
 
 };
@@ -359,6 +363,7 @@ exports.middleware = (store) => (next) => (action) => {
 
         case 'SESSION_SET_ACTIVE':
             pid = uids[action.uid].pid;
+            console.log('file: index.js ~ line 362 ~ pid', pid);
             setCwd(pid);
             break;
     }
