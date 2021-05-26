@@ -105,7 +105,7 @@ exports.decorateConfig = (config) => {
                 transition: opacity 0.25s ease-in-out;
                 opacity: ${hyperStatusLine.footerTransparent ? '0.5' : '1'};
             }
-            .footer_footer .item_cwd: hover {
+            .footer_footer .item_cwd:hover {
                 opacity: 1;
             }
             .footer_footer .item_cwd:before {
