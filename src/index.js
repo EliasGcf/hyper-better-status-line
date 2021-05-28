@@ -1,8 +1,17 @@
-const { shell } = require('electron');
-const { exec } = require('child_process');
-const color = require('color');
 const afterAll = require('after-all-results');
+const { exec } = require('child_process');
+const { shell } = require('electron');
 const tildify = require('tildify');
+const color = require('color');
+
+let pid;
+let cwd;
+let git = {
+  branch: '',
+  remote: '',
+  dirty: 0,
+  ahead: 0,
+};
 
 exports.decorateConfig = config => {
   const colorForeground = color(config.foregroundColor || '#fff');
@@ -153,15 +162,6 @@ exports.decorateConfig = config => {
             }
         `,
   });
-};
-
-let pid;
-let cwd;
-let git = {
-  branch: '',
-  remote: '',
-  dirty: 0,
-  ahead: 0,
 };
 
 const setCwd = (pid, action) => {
