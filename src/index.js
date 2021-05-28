@@ -1,8 +1,9 @@
-const afterAll = require('after-all-results');
 const { exec } = require('child_process');
 const { shell } = require('electron');
 const tildify = require('tildify');
 const color = require('color');
+
+const { promiseExec } = require('./utils/promiseExec');
 
 let pid;
 let cwd;
@@ -35,114 +36,104 @@ function setCwd(pid, action) {
   }
 }
 
-function isGit(dir, cb) {
-  exec(`git rev-parse --is-inside-work-tree`, { cwd: dir }, err => {
-    cb(!err);
-  });
+async function isGit(dir) {
+  try {
+    await promiseExec('git rev-parse --is-inside-work-tree', { cwd: dir });
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-function gitBranch(repo, cb) {
-  exec(
-    `git symbolic-ref --short HEAD || git rev-parse --short HEAD`,
-    { cwd: repo },
-    (err, stdout) => {
-      if (err) {
-        return cb(err);
-      }
-
-      cb(null, stdout.trim());
-    },
+async function getGitBranch(path) {
+  const response = await promiseExec(
+    'git symbolic-ref --short HEAD || git rev-parse --short HEAD',
+    { cwd: path },
   );
+
+  const branch = response.stdout.trim();
+
+  return branch;
 }
 
-function gitRemote(repo, cb) {
-  exec(`git ls-remote --get-url`, { cwd: repo }, (err, stdout) => {
-    cb(
-      null,
-      stdout
-        .trim()
-        .replace(/^git@(.*?):/, 'https://$1/')
-        .replace(/[A-z0-9\-]+@/, '')
-        .replace(/\.git$/, ''),
-    );
+async function getGitRemote(path) {
+  const response = await promiseExec('git ls-remote --get-url', { cwd: path });
+
+  const remote = response.stdout
+    .trim()
+    .replace(/^git@(.*?):/, 'https://$1/')
+    .replace(/[A-z0-9\-]+@/, '')
+    .replace(/\.git$/, '');
+
+  return remote;
+}
+
+async function getGitDirty(path) {
+  const response = await promiseExec('git status --porcelain --ignore-submodules -uno', {
+    cwd: path,
   });
+
+  const dirty = !response.stdout
+    ? 0
+    : parseInt(response.stdout.trim().split('\n').length, 10);
+
+  return dirty;
 }
 
-function gitDirty(repo, cb) {
-  exec(
-    `git status --porcelain --ignore-submodules -uno`,
-    { cwd: repo },
-    (err, stdout) => {
-      if (err) {
-        return cb(err);
-      }
-
-      cb(null, !stdout ? 0 : parseInt(stdout.trim().split('\n').length, 10));
-    },
-  );
-}
-
-function gitAhead(repo, cb) {
-  exec(
+async function getGitAhead(path) {
+  const response = await promiseExec(
     `git rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`,
-    { cwd: repo },
-    (err, stdout) => {
-      cb(null, parseInt(stdout, 10));
-    },
+    { cwd: path },
   );
+
+  const ahead = parseInt(response.stdout, 10);
+
+  return ahead;
 }
 
-function gitCheck(repo, cb) {
-  const next = afterAll((err, results) => {
-    if (err) {
-      return cb(err);
-    }
+async function gitCheck(path) {
+  try {
+    const [branch, remote, dirty, ahead] = await Promise.all([
+      getGitBranch(path),
+      getGitRemote(path),
+      getGitDirty(path),
+      getGitAhead(path),
+    ]);
 
-    const branch = results[0];
-    const remote = results[1];
-    const dirty = results[2];
-    const ahead = results[3];
-
-    cb(null, {
-      branch: branch,
-      remote: remote,
-      dirty: dirty,
-      ahead: ahead,
-    });
-  });
-
-  gitBranch(repo, next());
-  gitRemote(repo, next());
-  gitDirty(repo, next());
-  gitAhead(repo, next());
+    return {
+      branch,
+      remote,
+      dirty,
+      ahead,
+    };
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-function setGit(repo) {
-  isGit(repo, exists => {
-    if (!exists) {
-      git = {
-        branch: '',
-        remote: '',
-        dirty: 0,
-        ahead: 0,
-      };
+async function setGit(path) {
+  const pathIsGit = await isGit(path);
 
-      return;
-    }
+  if (!pathIsGit) {
+    git = {
+      branch: '',
+      remote: '',
+      dirty: 0,
+      ahead: 0,
+    };
 
-    gitCheck(repo, (err, result) => {
-      if (err) {
-        throw err;
-      }
+    return;
+  }
 
-      git = {
-        branch: result.branch,
-        remote: result.remote,
-        dirty: result.dirty,
-        ahead: result.ahead,
-      };
-    });
-  });
+  const { branch, remote, dirty, ahead } = await gitCheck(path);
+
+  git = {
+    branch,
+    remote,
+    dirty,
+    ahead,
+  };
 }
 
 exports.decorateConfig = config => {
