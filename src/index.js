@@ -2,137 +2,20 @@ const { shell } = require('electron');
 const tildify = require('tildify');
 const color = require('color');
 
-const { promiseExec } = require('./utils/promiseExec');
+const { getCwd } = require('./utils/getCwd');
+const { getGit } = require('./utils/git');
+
+const { gitDefault } = require('./config/gitDefault');
 
 let updateState = () => {};
 
 let globalPid;
-
-const gitDefault = {
-  branch: '',
-  remote: '',
-  dirty: 0,
-  ahead: 0,
-};
 
 async function setCwd({ pid, action }) {
   const cwd = await getCwd(pid, action);
   const git = await getGit(cwd);
 
   updateState({ cwd, git });
-}
-
-async function getCwd(pid, action) {
-  if (process.platform === 'win32' && action && action.data) {
-    let directoryRegex = /([a-zA-Z]:[^\:\[\]\?\"\<\>\|]+)/im;
-    let path = directoryRegex.exec(action.data);
-
-    if (path) {
-      const newCwd = path[0];
-
-      return newCwd;
-    }
-  }
-
-  const response = await promiseExec(
-    `lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`,
-    { env: { ...process.env, LANG: 'en_US.UTF-8' } },
-  );
-
-  const newCwd = response.stdout.trim();
-
-  return newCwd;
-}
-
-async function isGit(dir) {
-  try {
-    await promiseExec('git rev-parse --is-inside-work-tree', { cwd: dir });
-
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function getGitBranch(path) {
-  const response = await promiseExec(
-    'git symbolic-ref --short HEAD || git rev-parse --short HEAD',
-    { cwd: path },
-  );
-
-  const branch = response.stdout.trim();
-
-  return branch;
-}
-
-async function getGitRemote(path) {
-  const response = await promiseExec('git ls-remote --get-url', { cwd: path });
-
-  const remote = response.stdout
-    .trim()
-    .replace(/^git@(.*?):/, 'https://$1/')
-    .replace(/[A-z0-9\-]+@/, '')
-    .replace(/\.git$/, '');
-
-  return remote;
-}
-
-async function getGitDirty(path) {
-  const response = await promiseExec('git status --porcelain --ignore-submodules -uno', {
-    cwd: path,
-  });
-
-  const dirty = !response.stdout
-    ? 0
-    : parseInt(response.stdout.trim().split('\n').length, 10);
-
-  return dirty;
-}
-
-async function getGitAhead(path) {
-  const response = await promiseExec(
-    `git rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`,
-    { cwd: path },
-  );
-
-  const ahead = parseInt(response.stdout, 10);
-
-  return ahead;
-}
-
-async function gitCheck(path) {
-  try {
-    const [branch, remote, dirty, ahead] = await Promise.all([
-      getGitBranch(path),
-      getGitRemote(path),
-      getGitDirty(path),
-      getGitAhead(path),
-    ]);
-
-    return {
-      branch,
-      remote,
-      dirty,
-      ahead,
-    };
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-async function getGit(path) {
-  const pathIsGit = await isGit(path);
-
-  if (!pathIsGit) return gitDefault;
-
-  const { branch, remote, dirty, ahead } = await gitCheck(path);
-
-  return {
-    branch,
-    remote,
-    dirty,
-    ahead,
-  };
 }
 
 exports.decorateConfig = config => {
@@ -311,6 +194,22 @@ exports.decorateHyper = (Hyper, { React }) => {
       shell.openExternal(this.state.remote);
     }
 
+    componentDidMount() {
+      updateState = ({ cwd, git }) => {
+        this.setState({
+          cwd: cwd,
+          branch: git.branch,
+          remote: git.remote,
+          dirty: git.dirty,
+          ahead: git.ahead,
+        });
+      };
+    }
+
+    componentWillUnmount() {
+      updateState = undefined;
+    }
+
     render() {
       const { customChildren } = this.props;
       const existingChildren = customChildren
@@ -390,22 +289,6 @@ exports.decorateHyper = (Hyper, { React }) => {
           ),
         }),
       );
-    }
-
-    componentDidMount() {
-      updateState = ({ cwd, git }) => {
-        this.setState({
-          cwd: cwd,
-          branch: git.branch,
-          remote: git.remote,
-          dirty: git.dirty,
-          ahead: git.ahead,
-        });
-      };
-    }
-
-    componentWillUnmount() {
-      updateState = undefined;
     }
   };
 };
