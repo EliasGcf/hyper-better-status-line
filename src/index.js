@@ -5,6 +5,8 @@ const color = require('color');
 
 const { promiseExec } = require('./utils/promiseExec');
 
+let updateState;
+
 let pid;
 let cwd;
 let git = {
@@ -394,7 +396,7 @@ exports.decorateHyper = (Hyper, { React }) => {
     }
 
     componentDidMount() {
-      this.interval = setInterval(() => {
+      updateState = () => {
         this.setState({
           cwd: cwd,
           branch: git.branch,
@@ -402,11 +404,11 @@ exports.decorateHyper = (Hyper, { React }) => {
           dirty: git.dirty,
           ahead: git.ahead,
         });
-      }, 100);
+      };
     }
 
     componentWillUnmount() {
-      clearInterval(this.interval);
+      updateState = undefined;
     }
   };
 };
@@ -422,6 +424,7 @@ exports.middleware = store => next => action => {
     case 'SESSION_ADD':
       pid = action.pid;
       setCwd(pid);
+      updateState && updateState();
       break;
 
     case 'SESSION_ADD_DATA':
@@ -430,13 +433,14 @@ exports.middleware = store => next => action => {
 
       if (enterKey) {
         setCwd(pid, action);
+        updateState && updateState();
       }
       break;
 
     case 'SESSION_SET_ACTIVE':
       pid = uids[action.uid].pid;
-      console.log('file: index.js ~ line 362 ~ pid', pid);
       setCwd(pid);
+      updateState && updateState();
       break;
   }
 
