@@ -1,41 +1,47 @@
-const { exec } = require('child_process');
 const { shell } = require('electron');
 const tildify = require('tildify');
 const color = require('color');
 
 const { promiseExec } = require('./utils/promiseExec');
 
-let updateState;
+let updateState = () => {};
 
-let pid;
-let cwd;
-let git = {
+let globalPid;
+
+const gitDefault = {
   branch: '',
   remote: '',
   dirty: 0,
   ahead: 0,
 };
 
-function setCwd(pid, action) {
-  if (process.platform == 'win32') {
+async function setCwd({ pid, action }) {
+  const cwd = await getCwd(pid, action);
+  const git = await getGit(cwd);
+
+  updateState({ cwd, git });
+}
+
+async function getCwd(pid, action) {
+  if (process.platform === 'win32' && action && action.data) {
     let directoryRegex = /([a-zA-Z]:[^\:\[\]\?\"\<\>\|]+)/im;
-    if (action && action.data) {
-      let path = directoryRegex.exec(action.data);
-      if (path) {
-        cwd = path[0];
-        setGit(cwd);
-      }
+    let path = directoryRegex.exec(action.data);
+
+    if (path) {
+      const newCwd = path[0];
+
+      return newCwd;
     }
-  } else {
-    exec(
-      `lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`,
-      { env: { ...process.env, LANG: 'en_US.UTF-8' } },
-      (err, stdout) => {
-        cwd = stdout.trim();
-        setGit(cwd);
-      },
-    );
   }
+
+  const response = await promiseExec(
+    `lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`,
+    { env: { ...process.env, LANG: 'en_US.UTF-8' } },
+  );
+
+  const newCwd = response.stdout.trim();
+
+  return newCwd;
 }
 
 async function isGit(dir) {
@@ -114,23 +120,14 @@ async function gitCheck(path) {
   }
 }
 
-async function setGit(path) {
+async function getGit(path) {
   const pathIsGit = await isGit(path);
 
-  if (!pathIsGit) {
-    git = {
-      branch: '',
-      remote: '',
-      dirty: 0,
-      ahead: 0,
-    };
-
-    return;
-  }
+  if (!pathIsGit) return gitDefault;
 
   const { branch, remote, dirty, ahead } = await gitCheck(path);
 
-  git = {
+  return {
     branch,
     remote,
     dirty,
@@ -296,10 +293,10 @@ exports.decorateHyper = (Hyper, { React }) => {
 
       this.state = {
         cwd: '',
-        branch: '',
-        remote: '',
-        dirty: 0,
-        ahead: 0,
+        branch: gitDefault.branch,
+        remote: gitDefault.remote,
+        dirty: gitDefault.dirty,
+        ahead: gitDefault.ahead,
       };
 
       this.handleCwdClick = this.handleCwdClick.bind(this);
@@ -396,7 +393,7 @@ exports.decorateHyper = (Hyper, { React }) => {
     }
 
     componentDidMount() {
-      updateState = () => {
+      updateState = ({ cwd, git }) => {
         this.setState({
           cwd: cwd,
           branch: git.branch,
@@ -418,29 +415,24 @@ exports.middleware = store => next => action => {
 
   switch (action.type) {
     case 'SESSION_SET_XTERM_TITLE':
-      pid = uids[action.uid].pid;
+      globalPid = uids[action.uid].pid;
       break;
 
     case 'SESSION_ADD':
-      pid = action.pid;
-      setCwd(pid);
-      updateState && updateState();
+      globalPid = action.pid;
+      setCwd({ pid: globalPid });
       break;
 
     case 'SESSION_ADD_DATA':
       const { data } = action;
       const enterKey = data.indexOf('\n') > 0;
 
-      if (enterKey) {
-        setCwd(pid, action);
-        updateState && updateState();
-      }
+      if (enterKey) setCwd({ pid: globalPid, action });
       break;
 
     case 'SESSION_SET_ACTIVE':
-      pid = uids[action.uid].pid;
-      setCwd(pid);
-      updateState && updateState();
+      globalPid = uids[action.uid].pid;
+      setCwd({ pid: globalPid });
       break;
   }
 
