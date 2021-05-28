@@ -414,26 +414,26 @@ exports.middleware = store => next => action => {
   const uids = store.getState().sessions.sessions;
 
   switch (action.type) {
-    case 'SESSION_SET_XTERM_TITLE':
+    case 'SESSION_SET_XTERM_TITLE': {
       globalPid = uids[action.uid].pid;
       break;
-
-    case 'SESSION_ADD':
+    }
+    case 'SESSION_ADD': {
       globalPid = action.pid;
       setCwd({ pid: globalPid });
       break;
-
-    case 'SESSION_ADD_DATA':
+    }
+    case 'SESSION_ADD_DATA': {
       const { data } = action;
       const enterKey = data.indexOf('\n') > 0;
-
       if (enterKey) setCwd({ pid: globalPid, action });
       break;
-
-    case 'SESSION_SET_ACTIVE':
+    }
+    case 'SESSION_SET_ACTIVE': {
       globalPid = uids[action.uid].pid;
       setCwd({ pid: globalPid });
       break;
+    }
   }
 
   next(action);
