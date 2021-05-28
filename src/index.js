@@ -13,6 +13,138 @@ let git = {
   ahead: 0,
 };
 
+function setCwd(pid, action) {
+  if (process.platform == 'win32') {
+    let directoryRegex = /([a-zA-Z]:[^\:\[\]\?\"\<\>\|]+)/im;
+    if (action && action.data) {
+      let path = directoryRegex.exec(action.data);
+      if (path) {
+        cwd = path[0];
+        setGit(cwd);
+      }
+    }
+  } else {
+    exec(
+      `lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`,
+      { env: { ...process.env, LANG: 'pt_BR.UTF-8' } },
+      (err, stdout) => {
+        cwd = stdout.trim();
+        setGit(cwd);
+      },
+    );
+  }
+}
+
+function isGit(dir, cb) {
+  exec(`git rev-parse --is-inside-work-tree`, { cwd: dir }, err => {
+    cb(!err);
+  });
+}
+
+function gitBranch(repo, cb) {
+  exec(
+    `git symbolic-ref --short HEAD || git rev-parse --short HEAD`,
+    { cwd: repo },
+    (err, stdout) => {
+      if (err) {
+        return cb(err);
+      }
+
+      cb(null, stdout.trim());
+    },
+  );
+}
+
+function gitRemote(repo, cb) {
+  exec(`git ls-remote --get-url`, { cwd: repo }, (err, stdout) => {
+    cb(
+      null,
+      stdout
+        .trim()
+        .replace(/^git@(.*?):/, 'https://$1/')
+        .replace(/[A-z0-9\-]+@/, '')
+        .replace(/\.git$/, ''),
+    );
+  });
+}
+
+function gitDirty(repo, cb) {
+  exec(
+    `git status --porcelain --ignore-submodules -uno`,
+    { cwd: repo },
+    (err, stdout) => {
+      if (err) {
+        return cb(err);
+      }
+
+      cb(null, !stdout ? 0 : parseInt(stdout.trim().split('\n').length, 10));
+    },
+  );
+}
+
+function gitAhead(repo, cb) {
+  exec(
+    `git rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`,
+    { cwd: repo },
+    (err, stdout) => {
+      cb(null, parseInt(stdout, 10));
+    },
+  );
+}
+
+function gitCheck(repo, cb) {
+  const next = afterAll((err, results) => {
+    if (err) {
+      return cb(err);
+    }
+
+    const branch = results[0];
+    const remote = results[1];
+    const dirty = results[2];
+    const ahead = results[3];
+
+    cb(null, {
+      branch: branch,
+      remote: remote,
+      dirty: dirty,
+      ahead: ahead,
+    });
+  });
+
+  gitBranch(repo, next());
+  gitRemote(repo, next());
+  gitDirty(repo, next());
+  gitAhead(repo, next());
+}
+
+function setGit(repo) {
+  isGit(repo, exists => {
+    if (!exists) {
+      git = {
+        branch: '',
+        remote: '',
+        dirty: 0,
+        ahead: 0,
+      };
+
+      return;
+    }
+
+    gitCheck(repo, (err, result) => {
+      if (err) {
+        throw err;
+      }
+
+      git = {
+        branch: result.branch,
+        remote: result.remote,
+        dirty: result.dirty,
+        ahead: result.ahead,
+      };
+    });
+  });
+}
+
 exports.decorateConfig = config => {
   const colorForeground = color(config.foregroundColor || '#fff');
   const colorBackground = color(config.backgroundColor || '#000');
@@ -161,138 +293,6 @@ exports.decorateConfig = config => {
                 bottom: 50px;
             }
         `,
-  });
-};
-
-const setCwd = (pid, action) => {
-  if (process.platform == 'win32') {
-    let directoryRegex = /([a-zA-Z]:[^\:\[\]\?\"\<\>\|]+)/im;
-    if (action && action.data) {
-      let path = directoryRegex.exec(action.data);
-      if (path) {
-        cwd = path[0];
-        setGit(cwd);
-      }
-    }
-  } else {
-    exec(
-      `lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`,
-      { env: { ...process.env, LANG: 'pt_BR.UTF-8' } },
-      (err, stdout) => {
-        cwd = stdout.trim();
-        setGit(cwd);
-      },
-    );
-  }
-};
-
-const isGit = (dir, cb) => {
-  exec(`git rev-parse --is-inside-work-tree`, { cwd: dir }, err => {
-    cb(!err);
-  });
-};
-
-const gitBranch = (repo, cb) => {
-  exec(
-    `git symbolic-ref --short HEAD || git rev-parse --short HEAD`,
-    { cwd: repo },
-    (err, stdout) => {
-      if (err) {
-        return cb(err);
-      }
-
-      cb(null, stdout.trim());
-    },
-  );
-};
-
-const gitRemote = (repo, cb) => {
-  exec(`git ls-remote --get-url`, { cwd: repo }, (err, stdout) => {
-    cb(
-      null,
-      stdout
-        .trim()
-        .replace(/^git@(.*?):/, 'https://$1/')
-        .replace(/[A-z0-9\-]+@/, '')
-        .replace(/\.git$/, ''),
-    );
-  });
-};
-
-const gitDirty = (repo, cb) => {
-  exec(
-    `git status --porcelain --ignore-submodules -uno`,
-    { cwd: repo },
-    (err, stdout) => {
-      if (err) {
-        return cb(err);
-      }
-
-      cb(null, !stdout ? 0 : parseInt(stdout.trim().split('\n').length, 10));
-    },
-  );
-};
-
-const gitAhead = (repo, cb) => {
-  exec(
-    `git rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`,
-    { cwd: repo },
-    (err, stdout) => {
-      cb(null, parseInt(stdout, 10));
-    },
-  );
-};
-
-const gitCheck = (repo, cb) => {
-  const next = afterAll((err, results) => {
-    if (err) {
-      return cb(err);
-    }
-
-    const branch = results[0];
-    const remote = results[1];
-    const dirty = results[2];
-    const ahead = results[3];
-
-    cb(null, {
-      branch: branch,
-      remote: remote,
-      dirty: dirty,
-      ahead: ahead,
-    });
-  });
-
-  gitBranch(repo, next());
-  gitRemote(repo, next());
-  gitDirty(repo, next());
-  gitAhead(repo, next());
-};
-
-const setGit = repo => {
-  isGit(repo, exists => {
-    if (!exists) {
-      git = {
-        branch: '',
-        remote: '',
-        dirty: 0,
-        ahead: 0,
-      };
-
-      return;
-    }
-
-    gitCheck(repo, (err, result) => {
-      if (err) {
-        throw err;
-      }
-
-      git = {
-        branch: result.branch,
-        remote: result.remote,
-        dirty: result.dirty,
-        ahead: result.ahead,
-      };
-    });
   });
 };
 
