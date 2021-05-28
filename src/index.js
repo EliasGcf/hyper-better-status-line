@@ -26,7 +26,7 @@ function setCwd(pid, action) {
   } else {
     exec(
       `lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`,
-      { env: { ...process.env, LANG: 'pt_BR.UTF-8' } },
+      { env: { ...process.env, LANG: 'en_US.UTF-8' } },
       (err, stdout) => {
         cwd = stdout.trim();
         setGit(cwd);
