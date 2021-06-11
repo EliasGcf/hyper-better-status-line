@@ -53,6 +53,7 @@ exports.decorateConfig = config => {
     css: `
             ${config.css || ''}
             .terms_terms {
+              margin-bottom: 26px;
             }
             .footer_footer {
                 display: flex;
