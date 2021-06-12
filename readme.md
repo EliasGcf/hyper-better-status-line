@@ -1,4 +1,4 @@
-# hyper-better-status-line
+# hyper-better-status-line ![GitHub](https://img.shields.io/github/license/EliasGcf/hyper-better-status-line) ![npm](https://img.shields.io/npm/v/hyper-better-status-line)
 
 > Status Line Plugin for [Hyper](https://hyper.is). Shows clickable & useful information. Matches any theme.
 
