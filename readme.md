@@ -1,9 +1,8 @@
-# hyper-statusline [![hyper](https://img.shields.io/badge/Hyper-v1.3.3-brightgreen.svg)](https://github.com/zeit/hyper/releases/tag/1.3.3) [![npm](https://img.shields.io/npm/v/hyper-statusline.svg?maxAge=86400?style=flat-square)](https://www.npmjs.com/package/hyper-statusline) [![npm](https://img.shields.io/npm/dt/hyper-statusline.svg?maxAge=86400?style=flat-square)](https://www.npmjs.com/package/hyper-statusline)
+# hyper-better-status-line
 
 > Status Line Plugin for [Hyper](https://hyper.is). Shows clickable & useful information. Matches any theme.
 
 ![hyper-statusline](https://cloud.githubusercontent.com/assets/1430576/21891665/14d29070-d8d4-11e6-9e98-b12ed28be93a.png)
-
 
 ## Install
 
@@ -12,17 +11,81 @@ Add following to your `~/.hyper.js` config.
 ```javascript
 module.exports = {
   ...
-  plugins: ['hyper-statusline']
+  plugins: ['hyper-better-status-line']
   ...
 }
 ```
-
 
 ## Config
 
 Add following to `~/.hyper.js`
 
+### Change Background Color
+
+Expected value is `CSS color`
+
+```javascript
+module.exports = {
+  config: {
+    ...
+      hyperStatusLine: {
+        footerBackground: '#191622',
+      }
+    ...
+  }
+}
+```
+
+### Add CWD Hover Color
+
+Expected value is `CSS color`
+
+```javascript
+module.exports = {
+  config: {
+    ...
+      hyperStatusLine: {
+        footerCwdHoverColor: '#78D1E1',
+      }
+    ...
+  }
+}
+```
+
+### Add Git Branch Hover Color
+
+Expected value is `CSS color`
+
+```javascript
+module.exports = {
+  config: {
+    ...
+      hyperStatusLine: {
+        footerBranchHoverColor: '#FF79C6',
+      }
+    ...
+  }
+}
+```
+
+### Add a different Font Family
+
+By default use `.hyper.js` fontFamily
+
+```javascript
+module.exports = {
+  config: {
+    ...
+      hyperStatusLine: {
+        fontFamily: 'Fira Code',
+      }
+    ...
+  }
+}
+```
+
 ### Change Git Dirty Color
+
 Expected value is `CSS color`
 
 ```javascript
@@ -38,6 +101,7 @@ module.exports = {
 ```
 
 ### Change Git Ahead Color
+
 Expected value is `CSS color`
 
 ```javascript
@@ -53,25 +117,24 @@ module.exports = {
 ```
 
 ### Disable Footer Transparency
-Default value is set to `true`
+
+Default value is set to `false`
 
 ```javascript
 module.exports = {
   config: {
     ...
       hyperStatusLine: {
-        footerTransparent: false,
+        footerTransparent: true,
       }
     ...
   }
 }
 ```
 
-
 ## Theme
 
 * [hyper-chesterish](https://github.com/henrikdahl/hyper-chesterish)
-
 
 ## License
 
