@@ -9,6 +9,9 @@
     "name": "Henrik Dahlheim",
     "email": "henrik.dahlheim@gmail.com"
   },
+  "scripts": {
+    "build": "NODE_ENV=production yarn webpack"
+  },
   "files": [
     "dist/bundle.js"
   ],
