@@ -11,7 +11,7 @@ module.exports = {
     libraryTarget: 'commonjs',
   },
   resolve: {
-    extensions: ['.js'],
+    extensions: ['.js', '.jsx'],
   },
   plugins: [new webpack.DefinePlugin({ 'global.GENTLY': false })],
   externals: [
@@ -25,7 +25,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.jsx$/,
         exclude: /node_modules/,
         use: 'babel-loader',
       },
