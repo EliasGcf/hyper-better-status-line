@@ -4,7 +4,7 @@
   "description": "Status Line Plugin for Hyper forked with improvements.",
   "main": "dist/bundle.js",
   "license": "MIT",
-  "repository": "EliasGcf/hyper-status-line",
+  "repository": "EliasGcf/hyper-better-status-line",
   "author": {
     "name": "Henrik Dahlheim",
     "email": "henrik.dahlheim@gmail.com"
