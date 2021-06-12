@@ -1,14 +1,20 @@
 {
-  "name": "hyper-statusline",
-  "version": "1.7.6",
-  "description": "Status Line Plugin for Hyper",
+  "name": "hyper-status-line",
+  "version": "1.7.7",
+  "description": "Status Line Plugin for Hyper forked with improvements.",
   "main": "dist/bundle.js",
   "license": "MIT",
-  "repository": "henrikdahl/hyper-statusline",
+  "repository": "EliasGcf/hyper-status-line",
   "author": {
     "name": "Henrik Dahlheim",
     "email": "henrik.dahlheim@gmail.com"
   },
+  "contributors": [
+    {
+      "name": "Elias Gabriel",
+      "url": "https://github.com/EliasGcf"
+    }
+  ],
   "scripts": {
     "build": "NODE_ENV=production yarn webpack"
   },
