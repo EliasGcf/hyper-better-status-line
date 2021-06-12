@@ -48,14 +48,18 @@ async function getGitDirty(path) {
 }
 
 async function getGitAhead(path) {
-  const response = await promiseExec(
-    `git rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`,
-    { cwd: path },
-  );
+  try {
+    const response = await promiseExec(
+      `git rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`,
+      { cwd: path },
+    );
 
-  const ahead = parseInt(response.stdout, 10);
+    const ahead = parseInt(response.stdout, 10);
 
-  return ahead;
+    return ahead;
+  } catch {
+    return parseInt(0, 10);
+  }
 }
 
 async function gitCheck(path) {
