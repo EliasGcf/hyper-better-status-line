@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-
 import { shell } from 'electron';
 import tildify from 'tildify';
 

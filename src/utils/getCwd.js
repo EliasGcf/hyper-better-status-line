@@ -1,6 +1,6 @@
-const { promiseExec } = require('./promiseExec');
+import { promiseExec } from './promiseExec';
 
-async function getCwd(pid, action) {
+export async function getCwd(pid, action) {
   if (process.platform === 'win32' && action && action.data) {
     let directoryRegex = /([a-zA-Z]:[^\:\[\]\?\"\<\>\|]+)/im;
     let path = directoryRegex.exec(action.data);
@@ -20,5 +20,3 @@ async function getCwd(pid, action) {
 
   return cwd;
 }
-
-module.exports = { getCwd };

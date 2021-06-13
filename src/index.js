@@ -1,9 +1,7 @@
-const { decorateConfig } = require('./config/decorateConfig');
-const { StatusLine, HyperMiddleware } = require('./components/StatusLine');
+import { decorateConfig } from './config/decorateConfig';
+import { StatusLine, HyperMiddleware } from './components/StatusLine';
 
-exports.decorateConfig = decorateConfig;
-
-exports.decorateHyper = (Hyper, { React }) => {
+export function decorateHyper(Hyper, { React }) {
   return class extends React.PureComponent {
     render() {
       const { customChildren } = this.props;
@@ -21,6 +19,6 @@ exports.decorateHyper = (Hyper, { React }) => {
       );
     }
   };
-};
+}
 
-exports.middleware = HyperMiddleware;
+export { decorateConfig, HyperMiddleware as middleware };

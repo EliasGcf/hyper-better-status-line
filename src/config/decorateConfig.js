@@ -1,6 +1,6 @@
-const color = require('color');
+import color from 'color';
 
-function decorateConfig(config) {
+export function decorateConfig(config) {
   const colorForeground = color(config.foregroundColor || '#fff');
   const colorBackground = color(config.backgroundColor || '#000');
   const colors = {
@@ -152,5 +152,3 @@ function decorateConfig(config) {
     `,
   });
 }
-
-module.exports = { decorateConfig };

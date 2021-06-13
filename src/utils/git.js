@@ -1,6 +1,6 @@
-const { promiseExec } = require('./promiseExec');
+import { promiseExec } from './promiseExec';
 
-const { gitDefault } = require('../config/gitDefault');
+import { gitDefault } from '../config/gitDefault';
 
 async function isGit(dir) {
   try {
@@ -82,7 +82,7 @@ async function gitCheck(path) {
   }
 }
 
-async function getGit(path) {
+export async function getGit(path) {
   const pathIsGit = await isGit(path);
 
   if (!pathIsGit) return gitDefault;
@@ -96,5 +96,3 @@ async function getGit(path) {
     ahead,
   };
 }
-
-module.exports = { getGit };
