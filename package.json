@@ -1,6 +1,6 @@
 {
   "name": "hyper-better-status-line",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "description": "Status Line Plugin for Hyper forked with improvements.",
   "main": "dist/bundle.js",
   "license": "MIT",
