@@ -47,6 +47,15 @@ export const HyperMiddleware = store => next => action => {
   next(action);
 };
 
+import {
+  Footer,
+  CwdContainer,
+  GitContainer,
+  ItemBranch,
+  ItemDirty,
+  ItemAhead,
+} from './styles';
+
 export class StatusLine extends Component {
   constructor(props) {
     super(props);
@@ -88,53 +97,55 @@ export class StatusLine extends Component {
   }
 
   render() {
+    const { statusLineConfig } = this.props;
+    const { dirty, ahead, cwd, remote, branch } = this.state;
+
+    const dirtyTitle = `${dirty} dirty ${dirty > 1 ? 'files' : 'file'}`;
+    const aheadTitle = `${ahead} ${ahead > 1 ? 'commits' : 'commit'} ahead`;
+
     return (
-      <footer className="footer_footer">
-        <div className="footer_group group_overflow">
-          <div className="component_component component_cwd">
-            <div
-              className="component_item item_icon item_cwd item_clickable"
-              title={this.state.cwd}
-              onClick={this.handleCwdClick}
-              hidden={!this.state.cwd}
-            >
-              {this.state.cwd ? tildify(String(this.state.cwd)) : ''}
+      <Footer
+        fontFamily={statusLineConfig.fontFamily}
+        isTransparent={statusLineConfig.footerTransparent}
+        backgroundColor={statusLineConfig.footerBackground}
+      >
+        <CwdContainer
+          hoverColor={statusLineConfig.footerCwdHoverColor}
+          foregroundColor={statusLineConfig.footerForeground}
+        >
+          <div>
+            <div title={cwd} hidden={!cwd} onClick={this.handleCwdClick}>
+              {cwd ? tildify(String(cwd)) : ''}
             </div>
           </div>
-        </div>
-        <div className="footer_group">
-          <div className="component_component component_git">
-            <div
-              className={`component_item item_icon item_branch ${
-                this.state.remote ? 'item_clickable' : ''
-              }`}
-              title={this.state.remote}
-              onClick={this.handleBranchClick}
-              hidden={!this.state.branch}
-            >
-              {this.state.branch}
-            </div>
-            <div
-              className="component_item item_icon item_number item_dirty"
-              title={`${this.state.dirty} dirty ${
-                this.state.dirty > 1 ? 'files' : 'file'
-              }`}
-              hidden={!this.state.dirty}
-            >
-              {this.state.dirty}
-            </div>
-            <div
-              className="component_item item_icon item_number item_ahead"
-              title={`${this.state.ahead} ${
-                this.state.ahead > 1 ? 'commits' : 'commit'
-              } ahead`}
-              hidden={!this.state.ahead}
-            >
-              {this.state.ahead}
-            </div>
-          </div>
-        </div>
-      </footer>
+        </CwdContainer>
+        <GitContainer foregroundColor={statusLineConfig.footerForeground}>
+          <ItemBranch
+            title={remote}
+            hidden={!branch}
+            isClickable={!!remote}
+            onClick={this.handleBranchClick}
+            hoverColor={statusLineConfig.footerBranchHoverColor}
+            foregroundColor={statusLineConfig.footerForeground}
+          >
+            {branch}
+          </ItemBranch>
+          <ItemDirty
+            hidden={!dirty}
+            title={dirtyTitle}
+            color={statusLineConfig.dirtyColor}
+          >
+            {dirty}
+          </ItemDirty>
+          <ItemAhead
+            hidden={!ahead}
+            title={aheadTitle}
+            color={statusLineConfig.aheadColor}
+          >
+            {ahead}
+          </ItemAhead>
+        </GitContainer>
+      </Footer>
     );
   }
 }
