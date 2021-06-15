@@ -11,7 +11,7 @@ export const Footer = styled.footer`
   cursor: default;
   position: absolute;
   -webkit-user-select: none;
-  border-radius: 0 0 6px 6px;
+  border-radius: ${({ isLinux }) => (isLinux ? '0' : '0 0 6px 6px')};
   justify-content: space-between;
   font-family: ${({ fontFamily }) => fontFamily};
   background-color: ${({ backgroundColor, isTransparent }) =>

@@ -108,6 +108,7 @@ export class StatusLine extends Component {
         fontFamily={statusLineConfig.fontFamily}
         isTransparent={statusLineConfig.footerTransparent}
         backgroundColor={statusLineConfig.footerBackground}
+        isLinux={statusLineConfig.platform === 'linux'}
       >
         <CwdContainer
           hoverColor={statusLineConfig.footerCwdHoverColor}

@@ -21,6 +21,8 @@ export function reduceUI(state, { type, config }) {
         config.colors,
       );
 
+      const platform = process.platform;
+
       const hyperStatusLine = Object.assign(
         {
           footerTransparent: false,
@@ -31,6 +33,7 @@ export function reduceUI(state, { type, config }) {
           fontFamily: config.fontFamily,
           dirtyColor: configColors.lightYellow,
           aheadColor: configColors.lightBlue,
+          platform,
         },
         config.hyperStatusLine,
       );
