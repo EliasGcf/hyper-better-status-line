@@ -36,6 +36,22 @@ module.exports = {
 }
 ```
 
+### Change Foreground Color
+
+Expected value is `CSS color`
+
+```javascript
+module.exports = {
+  config: {
+    ...
+      hyperStatusLine: {
+        footerForeground: '#fff',
+      }
+    ...
+  }
+}
+```
+
 ### Add CWD Hover Color
 
 Expected value is `CSS color`
