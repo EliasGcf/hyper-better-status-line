@@ -29,7 +29,7 @@ module.exports = {
   config: {
     ...
       hyperStatusLine: {
-        footerBackground: '#191622',
+        background: '#191622',
       }
     ...
   }
@@ -45,7 +45,7 @@ module.exports = {
   config: {
     ...
       hyperStatusLine: {
-        footerForeground: '#fff',
+        foreground: '#fff',
       }
     ...
   }
@@ -61,7 +61,7 @@ module.exports = {
   config: {
     ...
       hyperStatusLine: {
-        footerCwdHoverColor: '#78D1E1',
+        cwdHoverColor: '#78D1E1',
       }
     ...
   }
@@ -77,7 +77,7 @@ module.exports = {
   config: {
     ...
       hyperStatusLine: {
-        footerBranchHoverColor: '#FF79C6',
+        branchHoverColor: '#FF79C6',
       }
     ...
   }
@@ -141,7 +141,7 @@ module.exports = {
   config: {
     ...
       hyperStatusLine: {
-        footerTransparent: true,
+        isTransparent: true,
       }
     ...
   }

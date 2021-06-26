@@ -25,11 +25,11 @@ export function reduceUI(state, { type, config }) {
 
       const hyperStatusLine = Object.assign(
         {
-          footerTransparent: false,
-          footerBackground: colors.background,
-          footerForeground: colors.foreground,
-          footerCwdHoverColor: 'none',
-          footerBranchHoverColor: 'none',
+          isTransparent: false,
+          background: colors.background,
+          foreground: colors.foreground,
+          cwdHoverColor: 'none',
+          branchHoverColor: 'none',
           fontFamily: config.fontFamily,
           dirtyColor: configColors.lightYellow,
           aheadColor: configColors.lightBlue,

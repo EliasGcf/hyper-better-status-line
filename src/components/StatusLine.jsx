@@ -106,13 +106,13 @@ export class StatusLine extends Component {
     return (
       <Footer
         fontFamily={statusLineConfig.fontFamily}
-        isTransparent={statusLineConfig.footerTransparent}
-        backgroundColor={statusLineConfig.footerBackground}
+        isTransparent={statusLineConfig.isTransparent}
+        backgroundColor={statusLineConfig.background}
         isLinux={statusLineConfig.platform === 'linux'}
       >
         <CwdContainer
-          hoverColor={statusLineConfig.footerCwdHoverColor}
-          foregroundColor={statusLineConfig.footerForeground}
+          hoverColor={statusLineConfig.cwdHoverColor}
+          foregroundColor={statusLineConfig.foreground}
         >
           <div>
             <div title={cwd} hidden={!cwd} onClick={this.handleCwdClick}>
@@ -120,14 +120,14 @@ export class StatusLine extends Component {
             </div>
           </div>
         </CwdContainer>
-        <GitContainer foregroundColor={statusLineConfig.footerForeground}>
+        <GitContainer foregroundColor={statusLineConfig.foreground}>
           <ItemBranch
             title={remote}
             hidden={!branch}
             isClickable={!!remote}
             onClick={this.handleBranchClick}
-            hoverColor={statusLineConfig.footerBranchHoverColor}
-            foregroundColor={statusLineConfig.footerForeground}
+            hoverColor={statusLineConfig.branchHoverColor}
+            foregroundColor={statusLineConfig.foreground}
           >
             {branch}
           </ItemBranch>
